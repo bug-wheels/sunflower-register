@@ -19,7 +19,8 @@ func InitRouter() *gin.Engine {
 	serviceDiscoveryGroup := r.Group("/api/v1/service")
 	{
 		// 获取当前的服务信息
-		serviceDiscoveryGroup.GET("/info", GetServiceInstance)
+		serviceDiscoveryGroup.GET("/info", GetAllServiceInstance)
+		serviceDiscoveryGroup.GET("/instances/:dc/:ns/:serviceId", GetServiceInstance)
 		// 注册一个服务实例
 		serviceDiscoveryGroup.POST("/register/:dc/:ns", RegisterServiceInstance)
 		// 剔除一个服务实例

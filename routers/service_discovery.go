@@ -17,10 +17,11 @@ type ZoneInfo struct {
 	Namespace  string `uri:"ns" binding:"required" json:"namespace"`
 }
 
-type DeServiceInstance struct {
+type ServiceInstanceParam struct {
 	Datacenter string `uri:"dc" binding:"required" json:"datacenter"`
 	Namespace  string `uri:"ns" binding:"required" json:"namespace"`
-	InstanceId string `uri:"instanceId" json:"instanceId" binding:"required"`
+	InstanceId string `uri:"instanceId" json:"instanceId"`
+	ServiceId  string `uri:"serviceId" json:"serviceId"`
 }
 
 type ServiceInstance struct {
@@ -28,7 +29,7 @@ type ServiceInstance struct {
 	ServiceId  string                 `form:"serviceId" json:"serviceId" binding:"required"`
 	Host       string                 `form:"host" json:"host" binding:"required"`
 	Port       int                    `form:"port" json:"port" binding:"required"`
-	Metadata   map[string]interface{} `form:"metadata" json:"metadata" binding:"required"`
+	Metadata   map[string]interface{} `form:"metadata" json:"metadata"`
 }
 
 /**
@@ -59,25 +60,47 @@ func init() {
 }
 
 func DeregisterServiceInstance(c *gin.Context) {
-	var deServiceInstance DeServiceInstance
+	var serviceInstanceParam ServiceInstanceParam
 
-	if err := c.ShouldBindUri(&deServiceInstance); err != nil {
+	if err := c.ShouldBindUri(&serviceInstanceParam); err != nil {
 		c.JSON(400, gin.H{"msg": err.Error()})
 		return
 	}
 
-	if datacenterMap, ok := globalServiceInstanceMap[deServiceInstance.Datacenter]; ok {
-		if namespaceMap, ok := datacenterMap[deServiceInstance.Namespace]; ok {
+	if datacenterMap, ok := globalServiceInstanceMap[serviceInstanceParam.Datacenter]; ok {
+		if namespaceMap, ok := datacenterMap[serviceInstanceParam.Namespace]; ok {
 			for _, serviceInfo := range namespaceMap {
-				delete(serviceInfo, deServiceInstance.InstanceId)
+				delete(serviceInfo, serviceInstanceParam.InstanceId)
 			}
 		}
 	}
 	c.AbortWithStatus(200)
 }
 
-func GetServiceInstance(c *gin.Context) {
+func GetAllServiceInstance(c *gin.Context) {
 	c.JSON(200, globalServiceInstanceMap)
+}
+
+func GetServiceInstance(c *gin.Context) {
+	var serviceInstanceParam ServiceInstanceParam
+
+	if err := c.ShouldBindUri(&serviceInstanceParam); err != nil {
+		c.JSON(400, gin.H{"msg": err.Error()})
+		return
+	}
+
+	result := make([]ServiceInstance, 0)
+
+	if datacenterMap, ok := globalServiceInstanceMap[serviceInstanceParam.Datacenter]; ok {
+		if namespaceMap, ok := datacenterMap[serviceInstanceParam.Namespace]; ok {
+			if serviceMap, ok := namespaceMap[serviceInstanceParam.ServiceId]; ok {
+				for _, serviceInfo := range serviceMap {
+					result = append(result, serviceInfo)
+				}
+			}
+		}
+	}
+	c.JSON(200, result)
 }
 
 func RegisterServiceInstance(c *gin.Context) {
