@@ -18,8 +18,11 @@ func InitRouter() *gin.Engine {
 
 	serviceDiscoveryGroup := r.Group("/api/v1/service")
 	{
+		// 获取当前的服务信息
 		serviceDiscoveryGroup.GET("/info", GetServiceInstance)
+		// 注册一个服务实例
 		serviceDiscoveryGroup.POST("/register/:dc/:ns", RegisterServiceInstance)
+		// 剔除一个服务实例
 		serviceDiscoveryGroup.DELETE("/deregister/:dc/:ns/:instanceId", DeregisterServiceInstance)
 	}
 	return r
