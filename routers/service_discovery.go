@@ -17,6 +17,12 @@ type ZoneInfo struct {
 	Namespace  string `uri:"ns" binding:"required" json:"namespace"`
 }
 
+type DeServiceInstance struct {
+	Datacenter string `uri:"dc" binding:"required" json:"datacenter"`
+	Namespace  string `uri:"ns" binding:"required" json:"namespace"`
+	InstanceId string `uri:"instanceId" json:"instanceId" binding:"required"`
+}
+
 type ServiceInstance struct {
 	InstanceId string                 `form:"instanceId" json:"instanceId" binding:"required"`
 	ServiceId  string                 `form:"serviceId" json:"serviceId" binding:"required"`
@@ -50,6 +56,28 @@ var globalServiceInstanceMap = make(map[string]map[string]map[string]map[string]
 func init() {
 	globalServiceInstanceMap["default"] = make(map[string]map[string]map[string]ServiceInstance)
 	globalServiceInstanceMap["default"]["default"] = make(map[string]map[string]ServiceInstance)
+}
+
+func DeregisterServiceInstance(c *gin.Context) {
+	var deServiceInstance DeServiceInstance
+
+	if err := c.ShouldBindUri(&deServiceInstance); err != nil {
+		c.JSON(400, gin.H{"msg": err.Error()})
+		return
+	}
+
+	if datacenterMap, ok := globalServiceInstanceMap[deServiceInstance.Datacenter]; ok {
+		if namespaceMap, ok := datacenterMap[deServiceInstance.Namespace]; ok {
+			for _, serviceInfo := range namespaceMap {
+				delete(serviceInfo, deServiceInstance.InstanceId)
+			}
+		}
+	}
+	c.AbortWithStatus(200)
+}
+
+func GetServiceInstance(c *gin.Context) {
+	c.JSON(200, globalServiceInstanceMap)
 }
 
 func RegisterServiceInstance(c *gin.Context) {

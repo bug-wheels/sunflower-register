@@ -18,7 +18,9 @@ func InitRouter() *gin.Engine {
 
 	serviceDiscoveryGroup := r.Group("/api/v1/service")
 	{
+		serviceDiscoveryGroup.GET("/info", GetServiceInstance)
 		serviceDiscoveryGroup.POST("/register/:dc/:ns", RegisterServiceInstance)
+		serviceDiscoveryGroup.DELETE("/deregister/:dc/:ns/:instanceId", DeregisterServiceInstance)
 	}
 	return r
 }

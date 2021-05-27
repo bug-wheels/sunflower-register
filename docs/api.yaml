@@ -20,6 +20,28 @@ servers:
   - url: 'http://127.0.0.1'
 
 paths:
+  /api/v1/service/deregister/{dc}/{ns}/{instanceId}:
+    delete:
+      tags:
+        - service
+      summary: 注册一个新的服务，如果服务已经存在则替换
+      description: 注册一个新的服务，如果服务已经存在则替换
+      parameters:
+        - name: dc
+          in: path
+          description: 数据中心 默认值 default
+          example: default
+        - name: ns
+          in: path
+          description: 命名空间 namespace
+          example: default
+        - name: instanceId
+          in: path
+          description: 实例 Id
+          example: sdfeiadkfjlaelifald
+      responses:
+        "200":
+          description: 成功
   /api/v1/service/register/{dc}/{ns}:
     post:
       tags:
